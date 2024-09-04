@@ -1,11 +1,50 @@
 import React, { useEffect, useLayoutEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { menuItemClick } from "../slices/menuslice";
+import { MENU_ITEMS } from "../constants";
 
 const Board = ({ width, height }) => {
   const canvasRef = useRef(null);
   const shouldDraw = useRef(false);
   const drawHistory = useRef([]);
   const historyPointer = useRef(0);
+  const dispatch = useDispatch();
+  const { activeMenuItem } = useSelector((state) => {
+    return {
+      activeMenuItem: state?.menu?.activeMenuItem,
+    };
+  });
 
+  // when activemenuitem changes
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    if (activeMenuItem === MENU_ITEMS.DOWNLOAD) {
+      const URL = canvas.toDataURL();
+      const anchor = document.createElement("a");
+      anchor.href = URL;
+      anchor.download = "sketch.jpg";
+      anchor.click();
+    } else if (
+      activeMenuItem === MENU_ITEMS.UNDO ||
+      activeMenuItem === MENU_ITEMS.REDO
+    ) {
+      if (historyPointer.current > 0 && activeMenuItem === MENU_ITEMS.UNDO)
+        historyPointer.current -= 1;
+      if (
+        historyPointer.current < drawHistory.current.length - 1 &&
+        activeMenuItem === MENU_ITEMS.REDO
+      )
+        historyPointer.current += 1;
+      const imageData = drawHistory.current[historyPointer.current];
+      context.putImageData(imageData, 0, 0);
+    }
+    dispatch(menuItemClick(null));
+  }, [activeMenuItem, dispatch]);
+
+  // when initial brower loader
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");

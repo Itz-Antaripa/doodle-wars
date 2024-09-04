@@ -5,6 +5,7 @@ import Board from "./components/Board.jsx";
 import Menu from "./components/Menu.jsx";
 import SubmitButton from "./components/SubmitButton.jsx";
 import { setAction } from "./slices/appSlice";
+import { menuItemClick } from "./slices/menuslice.js";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -15,6 +16,15 @@ const App = () => {
       action: state.app.action,
     };
   });
+  const { activeMenuItem } = useSelector((state) => {
+    return {
+      activeMenuItem: state?.menu?.activeMenuItem,
+    };
+  });
+
+  const handleMenuClick = (itemName) => {
+    dispatch(menuItemClick(itemName));
+  };
 
   const handlePenClick = () => dispatch(setAction("pen"));
   const handleUndoClick = () => dispatch(setAction("undo"));
@@ -34,7 +44,7 @@ const App = () => {
           onRedoClick={handleRedoClick}
         />
       </div>
-      <SubmitButton onSubmit={handleSubmit} />
+      <SubmitButton onSubmit={handleMenuClick} />
     </div>
   );
 };
