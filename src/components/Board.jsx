@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { menuItemClick } from "../slices/menuslice";
 import { MENU_ITEMS } from "../constants";
+import { sendCanvasImage } from "../services/canvasService";
 
 const Board = ({ width, height }) => {
   const canvasRef = useRef(null);
@@ -21,7 +22,13 @@ const Board = ({ width, height }) => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    if (activeMenuItem === MENU_ITEMS.DOWNLOAD) {
+    if (activeMenuItem === MENU_ITEMS.SUBMIT) {
+      // Convert the canvas to a base64 string
+      const base64Image = canvas.toDataURL("image/png");
+
+      // Dispatch the action to submit the canvas image
+      dispatch(sendCanvasImage(base64Image));
+    } else if (activeMenuItem === MENU_ITEMS.DOWNLOAD) {
       const URL = canvas.toDataURL();
       const anchor = document.createElement("a");
       anchor.href = URL;

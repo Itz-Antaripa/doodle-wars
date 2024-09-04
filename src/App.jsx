@@ -21,6 +21,12 @@ const App = () => {
       activeMenuItem: state?.menu?.activeMenuItem,
     };
   });
+  
+  const { canvasUrl } = useSelector((state) => {
+    return {
+      canvasUrl: state?.canvas?.canvasUrl,
+    };
+  });
 
   const handleMenuClick = (itemName) => {
     dispatch(menuItemClick(itemName));
@@ -35,6 +41,7 @@ const App = () => {
 
   return (
     <div className="flex flex-col items-center p-5">
+      {canvasUrl && canvasUrl}
       <TopWord word={word} />
       <div className="relative border-2 border-black p-2.5">
         <Board width={500} height={300} />
