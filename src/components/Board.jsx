@@ -25,7 +25,6 @@ const Board = ({ width, height }) => {
     if (activeMenuItem === MENU_ITEMS.SUBMIT) {
       // Convert the canvas to a base64 string
       const base64Image = canvas.toDataURL("image/png");
-
       // Dispatch the action to submit the canvas image
       dispatch(sendCanvasImage(base64Image));
     } else if (activeMenuItem === MENU_ITEMS.DOWNLOAD) {

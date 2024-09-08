@@ -6,13 +6,13 @@ export const getRandomWord = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await fetch(
-        "https://random-word-api.herokuapp.com/word"
+        "https://doodle-wars-backend.vercel.app/random-word"
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      return data[0]; // Assuming the API returns an array with one word
+      return data.word; // Assuming the API returns an array with one word
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
     }

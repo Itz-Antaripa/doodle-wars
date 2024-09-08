@@ -11,8 +11,8 @@ export const sendCanvasImage = createAsyncThunk(
       //     { image: base64Image }
       //   );
         const response = base64Image;
-        return response;
         console.log(response);
+        return response;
     //   return response.data; // Assuming the response contains data
     } catch (error) {
       return rejectWithValue(error.message);
