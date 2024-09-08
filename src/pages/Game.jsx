@@ -7,6 +7,7 @@ import TopWord from "../components/TopWord.jsx";
 import { menuItemClick } from "../slices/menuslice";
 import { getRandomWord } from "../services/wordService.js";
 import { MENU_ITEMS } from "../constants";
+import SubmitButton from "../components/SubmitButton.jsx";
 
 const Game = () => {
 	const dispatch = useDispatch();
@@ -47,12 +48,12 @@ const Game = () => {
 	return (
 		<div className="flex flex-col h-screen bg-yellow-300">
 			<div className="p-2 flex items-center justify-between">
-				<div className="flex items-center">
-					<Link to="/" className="text-lg font-bold hover:underline mr-2">
-						<FaHome />
-					</Link>
-					<span className="text-lg font-bold">Drawing 1/6</span>
-				</div>
+      <div className="flex items-center">
+        <Link to="/" className="text-lg font-bold hover:underline mr-2">
+          <FaHome />
+        </Link>
+        <span className="text-lg font-bold">Drawing 1/6</span>
+      </div>
 				<div className="bg-white px-3 py-1 rounded-md text-lg font-bold">
 					{String(Math.floor(timeLeft / 60)).padStart(2, '0')}:{String(timeLeft % 60).padStart(2, '0')}
 				</div>
@@ -72,12 +73,7 @@ const Game = () => {
 				<TopWord word={word} isLoading={status === "loading"} />
 				<Board width={Math.min(window.innerWidth - 40, 600)} height={Math.min(window.innerHeight - 300, 350)} />
 				{score === null ? (
-					<button
-						onClick={handleSubmit}
-						className="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 transition duration-300"
-					>
-						Got It!
-					</button>
+					<SubmitButton onClick={handleSubmit}/>
 				) : (
 					<div className="mt-4 text-xl font-bold bg-white px-4 py-2 rounded-lg shadow">
 						Your Score: {score}/100
