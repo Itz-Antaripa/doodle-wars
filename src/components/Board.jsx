@@ -1,56 +1,45 @@
 import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { menuItemClick } from "../slices/menuslice";
+import { addToHistory, undo, redo, clearHistory } from "../slices/drawingSlice.js";
 import { MENU_ITEMS } from "../constants";
 import { sendCanvasImage } from "../services/canvasService";
 
 const Board = ({ width, height }) => {
   const canvasRef = useRef(null);
   const shouldDraw = useRef(false);
-  const drawHistory = useRef([]);
-  const historyPointer = useRef(0);
   const dispatch = useDispatch();
-  const { activeMenuItem } = useSelector((state) => {
-    return {
-      activeMenuItem: state?.menu?.activeMenuItem,
-    };
-  });
+  const { activeMenuItem } = useSelector((state) => state.menu);
+  const { drawHistory, historyPointer } = useSelector((state) => state.drawing);
 
-  // when activemenuitem changes
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    if (activeMenuItem === MENU_ITEMS.SUBMIT) {
-      // Convert the canvas to a base64 string
-      const base64Image = canvas.toDataURL("image/png");
-      // Dispatch the action to submit the canvas image
-      dispatch(sendCanvasImage(base64Image));
-    } else if (activeMenuItem === MENU_ITEMS.DOWNLOAD) {
-      const URL = canvas.toDataURL();
-      const anchor = document.createElement("a");
-      anchor.href = URL;
-      anchor.download = "sketch.jpg";
-      anchor.click();
-    } else if (
-      activeMenuItem === MENU_ITEMS.UNDO ||
-      activeMenuItem === MENU_ITEMS.REDO
-    ) {
-      if (historyPointer.current > 0 && activeMenuItem === MENU_ITEMS.UNDO)
-        historyPointer.current -= 1;
-      if (
-        historyPointer.current < drawHistory.current.length - 1 &&
-        activeMenuItem === MENU_ITEMS.REDO
-      )
-        historyPointer.current += 1;
-      const imageData = drawHistory.current[historyPointer.current];
+    const applyDrawingState = (imageData) => {
       context.putImageData(imageData, 0, 0);
-    }
-    dispatch(menuItemClick(null));
-  }, [activeMenuItem, dispatch]);
+    };
 
-  // when initial brower loader
+    switch (activeMenuItem) {
+      case MENU_ITEMS.UNDO:
+        dispatch(undo());
+        break;
+      case MENU_ITEMS.REDO:
+        dispatch(redo());
+        break;
+      // ... handle other menu items
+    }
+
+    if (historyPointer >= 0 && historyPointer < drawHistory.length) {
+      applyDrawingState(drawHistory[historyPointer]);
+    } else if (historyPointer === -1) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    dispatch(menuItemClick(null));
+  }, [activeMenuItem, dispatch, drawHistory, historyPointer]);
+
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
@@ -82,8 +71,7 @@ const Board = ({ width, height }) => {
     const handleMouseUp = () => {
       shouldDraw.current = false;
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      drawHistory.current.push(imageData);
-      historyPointer.current = drawHistory.current.length - 1;
+      dispatch(addToHistory(imageData));
     };
 
     canvas.addEventListener("mousedown", handleMouseDown);
@@ -95,7 +83,7 @@ const Board = ({ width, height }) => {
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [width, height]);
+  }, [width, height, dispatch]);
 
   return (
     <canvas
