@@ -1,96 +1,87 @@
-import React, { useEffect, useLayoutEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { menuItemClick } from "../slices/menuslice";
-import { addToHistory, undo, redo, clearHistory } from "../slices/drawingSlice.js";
+import { addToHistory, undo, redo } from "../slices/drawingSlice";
 import { MENU_ITEMS } from "../constants";
-import { sendCanvasImage } from "../services/canvasService";
 
 const Board = ({ width, height }) => {
   const canvasRef = useRef(null);
-  const shouldDraw = useRef(false);
+  const contextRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  
   const dispatch = useDispatch();
   const { activeMenuItem } = useSelector((state) => state.menu);
   const { drawHistory, historyPointer } = useSelector((state) => state.drawing);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
     const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
-
-    const applyDrawingState = (imageData) => {
-      context.putImageData(imageData, 0, 0);
-    };
-
-    switch (activeMenuItem) {
-      case MENU_ITEMS.UNDO:
-        dispatch(undo());
-        break;
-      case MENU_ITEMS.REDO:
-        dispatch(redo());
-        break;
-      // ... handle other menu items
-    }
-
-    if (historyPointer >= 0 && historyPointer < drawHistory.length) {
-      applyDrawingState(drawHistory[historyPointer]);
-    } else if (historyPointer === -1) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    dispatch(menuItemClick(null));
-  }, [activeMenuItem, dispatch, drawHistory, historyPointer]);
-
-  useLayoutEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
     canvas.width = width;
     canvas.height = height;
+    
+    const context = canvas.getContext("2d");
+    context.lineCap = "round";
+    context.strokeStyle = "black";
+    context.lineWidth = 2;
+    contextRef.current = context;
 
-    const beginPath = (x, y) => {
-      const rect = canvas.getBoundingClientRect();
-      context.beginPath();
-      context.moveTo(x - rect.left, y - rect.top);
-    };
+    // Save initial blank state
+    saveToHistory();
+  }, [width, height]);
 
-    const drawLine = (x, y) => {
-      const rect = canvas.getBoundingClientRect();
-      context.lineTo(x - rect.left, y - rect.top);
-      context.stroke();
-    };
+  useEffect(() => {
+    if (activeMenuItem === MENU_ITEMS.UNDO) {
+      dispatch(undo());
+    } else if (activeMenuItem === MENU_ITEMS.REDO) {
+      dispatch(redo());
+    }
+  }, [activeMenuItem, dispatch]);
 
-    const handleMouseDown = (e) => {
-      shouldDraw.current = true;
-      beginPath(e.clientX, e.clientY);
-    };
+  useEffect(() => {
+    if (historyPointer >= 0 && drawHistory.length > 0) {
+      const imageData = drawHistory[historyPointer];
+      contextRef.current.putImageData(imageData, 0, 0);
+    } else {
+      contextRef.current.clearRect(0, 0, width, height);
+    }
+  }, [drawHistory, historyPointer, width, height]);
 
-    const handleMouseMove = (e) => {
-      if (!shouldDraw.current) return;
-      drawLine(e.clientX, e.clientY);
-    };
+  const saveToHistory = () => {
+    const canvas = canvasRef.current;
+    const imageData = contextRef.current.getImageData(0, 0, canvas.width, canvas.height);
+    dispatch(addToHistory(imageData));
+  };
 
-    const handleMouseUp = () => {
-      shouldDraw.current = false;
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      dispatch(addToHistory(imageData));
-    };
+  const startDrawing = ({ nativeEvent }) => {
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(offsetX, offsetY);
+    setIsDrawing(true);
+  };
 
-    canvas.addEventListener("mousedown", handleMouseDown);
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseup", handleMouseUp);
+  const finishDrawing = () => {
+    contextRef.current.closePath();
+    setIsDrawing(false);
+    saveToHistory();
+  };
 
-    return () => {
-      canvas.removeEventListener("mousedown", handleMouseDown);
-      canvas.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [width, height, dispatch]);
+  const draw = ({ nativeEvent }) => {
+    if (!isDrawing) {
+      return;
+    }
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.lineTo(offsetX, offsetY);
+    contextRef.current.stroke();
+  };
 
   return (
     <canvas
       ref={canvasRef}
-      className="border border-black"
-      style={{ width: `${width}px`, height: `${height}px` }}
-    ></canvas>
+      width={width}
+      height={height}
+      onMouseDown={startDrawing}
+      onMouseUp={finishDrawing}
+      onMouseMove={draw}
+      className="bg-white "
+    />
   );
 };
 

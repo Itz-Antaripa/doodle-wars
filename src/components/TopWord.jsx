@@ -8,9 +8,9 @@ const TopWord = ({ word, isLoading }) => {
 
   return (
     <div
-      className={`border-2 border-black rounded-lg px-5 py-2 ${textSize} mb-5 bg-white flex items-center justify-center`}
+      className={`bg-gradient-to-r from-yellow-200 to-yellow-400 text-gray-800 ${textSize} mb-5 py-2 px-4 rounded-lg shadow-inner flex items-center justify-center font-serif`}
     >
-      {isLoading ? <ClipLoader size={spinnerSize} color={"#000"} /> : word}
+      {isLoading ? <ClipLoader size={spinnerSize} color={"#4a5568"} /> : word}
     </div>
   );
 };
