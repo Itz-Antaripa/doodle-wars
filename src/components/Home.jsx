@@ -1,15 +1,22 @@
 import React from "react";
 import { FaQuestionCircle, FaUsers, FaTrophy } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import {motion} from "framer-motion"
 
-export default function Home() {
+const Home = ({ pageVariants, pageTransition }) => {
   const navigate = useNavigate();
 
   const handleStartGame = () => {
     navigate('/game');
   };
   return (
-    <div className="min-h-screen bg-white p-8 font-sans">
+    <motion.div
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
       <header className="flex justify-between items-center mb-12">
         <div>
           <button className="bg-pink-200 p-2 rounded-lg shadow-md hover:bg-pink-300 transition-colors">
@@ -59,6 +66,8 @@ export default function Home() {
         <p>Doodle Wars: Where Creativity Meets Competition</p>
         <p>Created by awesome developers</p>
       </footer>
-    </div>
+    </motion.div>
   );
-}
+};
+
+export default Home;

@@ -8,6 +8,7 @@ import { menuItemClick } from "../slices/menuslice";
 import { getRandomWord } from "../services/wordService.js";
 import { MENU_ITEMS } from "../constants";
 import SubmitButton from "../components/SubmitButton.jsx";
+import {motion} from "framer-motion"
 
 const Game = () => {
 	const dispatch = useDispatch();
@@ -46,7 +47,12 @@ const Game = () => {
 	};
 
 	return (
-		<div className="flex flex-col h-screen bg-yellow-300">
+		<motion.div className="flex flex-col h-screen bg-yellow-300"
+		initial={{ y: '-100%' }}
+		animate={{ y: '0%' }}
+		exit={{ y: '100%' }}
+		transition={{ duration: 0.5, ease: 'easeInOut' }}>
+			
 			<div className="p-2 flex items-center justify-between">
       <div className="flex items-center">
         <Link to="/" className="text-lg font-bold hover:underline mr-2">
@@ -80,7 +86,7 @@ const Game = () => {
 					</div>
 				)}
 			</div>
-		</div>
+		</motion.div>
 	);
 };
 
